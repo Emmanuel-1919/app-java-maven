@@ -1,0 +1,11 @@
+FROM maven:3.9.6-eclipse-temurin-21
+
+WORKDIR /app-java-maven/built-1
+COPY pom.xml .
+COPY mvnw .
+COPY .mvn .mvn
+COPY src src
+RUN ./mvnw clean package -DskipTests
+
+EXPOSE 8080
+CMD ["java", "-jar", "target/app-java-maven.jar"]
