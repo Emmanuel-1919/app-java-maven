@@ -28,19 +28,13 @@ pipeline {
             steps {
                 dir('manifests') {
                     checkout([
-                        $class: 'GitSCM',
-                        branches: [[
-                            name: "${env.BRANCH_NAME == 'develop'
-                                ? '*/develop'
-                                : (env.BRANCH_NAME == 'qa'
-                                    ? '*/qa'
-                                    : '*/main')}"
-                        ]],
-                        userRemoteConfigs: [[
+                         $class: 'GitSCM',
+                         branches: [[name: "*/${env.BRANCH_NAME}"]],
+                         userRemoteConfigs: [[
                             url: 'git@github.com:Emmanuel-1919/Devops-cicd.git',
                             credentialsId: 'github-devops-cicd'
                         ]]
-                    ])
+                   ])
                 }
 
                 echo "Desplegando en el ambiente: ${TARGET_ENV}"
@@ -61,4 +55,5 @@ pipeline {
                 '''
             }
         }
-          
+    }
+}
