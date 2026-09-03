@@ -24,27 +24,41 @@ pipeline {
                 
             }
         }
-        stage('Deploy') {
+                stage('Deploy') {
             steps {
-             dir('manifests') {
-              checkout([
-                
-                $class: 'GitSCM',
-                branches: [[name: "*/${env.BRANCHE_NAME}"]],
-                userRemoteConfigs: [[
-                    url: 'git@github.com:Emmanuel-1919/Devops-cicd.git',
-                    credentialsId: 'github-devops-cicd'
-                ]]
+                dir('manifests') {
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[
+                            name: "${env.BRANCH_NAME == 'develop'
+                                ? '*/develop'
+                                : (env.BRANCH_NAME == 'qa'
+                                    ? '*/qa'
+                                    : '*/main')}"
+                        ]],
+                        userRemoteConfigs: [[
+                            url: 'git@github.com:Emmanuel-1919/Devops-cicd.git',
+                            credentialsId: 'github-devops-cicd'
+                        ]]
+                    ])
+                }
 
-              ])
-             }
-                echo 'Desplegando en el clúster de Kubernetes...'
+                echo "Desplegando en el ambiente: ${TARGET_ENV}"
+
                 sh '''
-                    kubectl apply -f k8s/dev/app-java-maven-deployment.yaml
-                    kubectl set image deployment/app-java-maven app-java-maven=local-registry:5000/app-java-maven:$(git rev-parse --short HEAD) -n dev
-                    kubectl apply -f manifests/k8s/${TARGET_ENV}/app-java-maven-service.yaml
+                    IMAGE_TAG=$(git rev-parse --short HEAD)
+
+                    kubectl apply \
+                        -f manifests/k8s/${TARGET_ENV}/app-java-maven-deployment.yaml
+
+                    kubectl set image \
+                        deployment/app-java-maven \
+                        app-java-maven=local-registry:5000/app-java-maven:${IMAGE_TAG} \
+                        -n ${TARGET_ENV}
+
+                    kubectl apply \
+                        -f manifests/k8s/${TARGET_ENV}/app-java-maven-service.yaml
                 '''
             }
         }
-    }
-}
+          
