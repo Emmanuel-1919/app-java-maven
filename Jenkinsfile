@@ -14,6 +14,20 @@ pipeline {
     }
 
     stages {
+
+        stage('Validar Ambiente') {
+            steps {
+                script {
+                    if (params.DEPLOY_ENV == 'prod' && env.BRANCH_NAME != 'main') {
+                        error "Solo la rama 'main' puede desplegar a producción (prod). Estás en la rama '${env.BRANCH_NAME}'."
+                    }
+                    if (params.DEPLOY_ENV == 'prod') {
+                        input message: "¿Confirmas el despliegue a PRODUCCIÓN?", ok: "Sí, desplegar"
+                    }
+                }
+            }
+        }
+
         stage('Test') {
             agent {
                 docker { image 'maven:3.9.6-eclipse-temurin-21' }
@@ -72,6 +86,14 @@ pipeline {
                     kubectl apply \
                         --context ${TARGET_ENV} \
                         -f manifests/k8s/${TARGET_ENV}/app-java-maven-service.yaml
+
+                    kubectl annotate deployment/app-java-maven \
+                        --context ${TARGET_ENV} \
+                        -n ${TARGET_ENV} \
+                        kubernetes.io/change-cause="Jenkins build #${BUILD_NUMBER} - commit ${IMAGE_TAG}" \
+                        --overwrite
+
+                    echo "Para ver la app, corre en tu terminal: minikube service app-java-maven-service -n ${TARGET_ENV} -p ${TARGET_ENV} --url"
                 '''
             }
         }
