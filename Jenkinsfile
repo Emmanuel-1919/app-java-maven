@@ -81,7 +81,7 @@ pipeline {
                         --context ${TARGET_ENV} \
                         deployment/app-java-maven \
                         app-java-maven=host.docker.internal:5000/app-java-maven:${IMAGE_TAG} \
-                        -n ${TARGET_ENV}
+                        -n maven
 
                     kubectl apply \
                         --context ${TARGET_ENV} \
@@ -89,11 +89,11 @@ pipeline {
 
                     kubectl annotate deployment/app-java-maven \
                         --context ${TARGET_ENV} \
-                        -n ${TARGET_ENV} \
+                        -n maven \
                         kubernetes.io/change-cause="Jenkins build #${BUILD_NUMBER} - commit ${IMAGE_TAG}" \
                         --overwrite
 
-                    echo "Para ver la app, corre en tu terminal: minikube service app-java-maven-service -n ${TARGET_ENV} -p ${TARGET_ENV} --url"
+                    echo "Para ver la app, corre en tu terminal: minikube service app-java-maven-service -n maven -p ${TARGET_ENV} --url"
                 '''
             }
         }
