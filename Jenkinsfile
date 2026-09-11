@@ -47,10 +47,13 @@ pipeline {
 
                     docker build \
                         -t localhost:5000/app-java-maven:${IMAGE_TAG} \
+                        -t localhost:5000/app-java-maven:latest \
+
                         .
 
-                    docker push \
-                        localhost:5000/app-java-maven:${IMAGE_TAG}
+                 docker push localhost:5000/app-java-maven:${IMAGE_TAG}
+                 docker push localhost:5000/app-java-maven:latest
+
                 '''
             }
         }
